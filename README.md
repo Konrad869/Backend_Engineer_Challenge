@@ -1,4 +1,161 @@
+# Blockchain Indexer API
+
+A high-performance blockchain indexer that tracks address balances using the UTXO model, built with TypeScript, Bun, and PostgreSQL.
+
+## 🚀 Features
+
+- **UTXO-based balance tracking** - Accurately tracks balances using the Unspent Transaction Output model
+- **RESTful API** - Clean and intuitive endpoints for interacting with the blockchain
+- **Transaction Validation** - Comprehensive validation of blockchain rules
+- **Rollback Support** - Rollback to any previous block height
+- **Docker Support** - Easy setup and deployment with Docker Compose
+
+## 🛠️ Tech Stack
+
+- **Runtime**: [Bun](https://bun.sh/)
+- **Database**: PostgreSQL
+- **API**: Fastify
+- **Containerization**: Docker
+- **Testing**: Bun Test
+- **Language**: TypeScript
+
+## 🏗️ Project Structure
+
+```
+.
+├── src/
+│   ├── db/             # Database models and migrations
+│   ├── routes/         # API route handlers
+│   ├── services/       # Business logic
+│   ├── types/          # TypeScript type definitions
+│   └── utils/          # Helper functions
+├── spec/               # Test files
+├── docker/             # Docker configuration
+└── docker-compose.yml  # Docker Compose configuration
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose
+- (Optional) Bun (if not using Docker)
+
+### Running with Docker (Recommended)
+
+```bash
+# Start the application
+$ docker-compose up -d --build
+
+# Run tests
+$ docker-compose exec api bun test
+
+# View logs
+$ docker-compose logs -f api
+```
+
+### Running Locally
+
+1. Install dependencies:
+   ```bash
+   bun install
+   ```
+
+2. Set up environment variables (copy from .env.example):
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Start the application:
+   ```bash
+   bun start
+   ```
+
+4. Run tests:
+   ```bash
+   bun test
+   ```
+
+## 📚 API Documentation
+
+### `POST /blocks`
+
+Add a new block to the blockchain.
+
+**Request Body**:
+```json
+{
+  "id": "block-hash",
+  "height": 1,
+  "transactions": [
+    {
+      "id": "tx1",
+      "inputs": [],
+      "outputs": [
+        {
+          "address": "addr1",
+          "value": 10
+        }
+      ]
+    }
+  ]
+}
+```
+
+### `GET /balance/:address`
+
+Get the current balance of an address.
+
+**Response**:
+```json
+{
+  "balance": 10
+}
+```
+
+### `POST /rollback?height=:height`
+
+Rollback the blockchain to a specific height.
+
+## 🧪 Testing
+
+The project includes comprehensive tests covering:
+- Block validation
+- Transaction processing
+- Balance calculation
+- Rollback functionality
+- Edge cases and error handling
+
+Run tests with:
+```bash
+bun test
+```
+
+## 📊 Database Schema
+
+### Tables
+- `blocks` - Stores block information
+- `transactions` - Tracks all transactions
+- `utxos` - Tracks unspent transaction outputs
+- `address_balances` - Cached balances for fast lookups
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
 # EMURGO Backend Engineer Challenge
+
+*Original challenge instructions below:*
 
 This challenge is designed to evaluate your skills with data processing and API development. You will be responsible for creating an indexer that will keep track of the balance of each address in a blockchain.
 
@@ -78,71 +235,3 @@ This endpoint should return the current balance of the given address. Simple as 
 ### `POST /rollback?height=number`
 This endpoint should rollback the state of the indexer to the given height. This means that you should undo all the transactions that were added after the given height and recalculate the balance of each address. You can assume the `height` will **never** be more than 2000 blocks from the current height.
 
-## Example
-Imagine the following sequence of messages:
-```json
-{
-  height: 1,
-  transactions: [{
-    id: "tx1",
-    inputs: [],
-    outputs: [{
-      address: "addr1",
-      value: 10
-    }]
-  }]
-}
-// here we have addr1 with a balance of 10
-
-{
-  height: 2,
-  transactions: [{
-    id: "tx2",
-    inputs: [{
-      txId: "tx1",
-      index: 0
-    }],
-    outputs: [{
-      address: "addr2",
-      value: 4
-    }, {
-      address: "addr3",
-      value: 6
-    }]
-  }]
-}
-// here we have addr1 with a balance of 0, addr2 with a balance of 4 and addr3 with a balance of 6
-
-{
-  height: 3,
-  transactions: [{
-    id: "tx3",
-    inputs: [{
-      txId: "tx2",
-      index: 1
-    }],
-    outputs: [{
-      address: "addr4",
-      value: 2
-    }, {
-      address: "addr5",
-      value: 2
-    }, {
-      address: "addr6",
-      value: 2
-    }]
-  }]
-}
-// here we have addr1 with a balance of 0, addr2 with a balance of 4, addr3 with a balance of 0 and addr4, addr5 and addr6 with a balance of 2
-```
-
-Then, if you receive the request `POST /rollback?height=2`, you should undo the last transaction which will lead to the state where we have addr1 with a balance of 0, addr2 with a balance of 4 and addr3 with a balance of 6.
-
-## Tests
-You should write tests for all the operations described above. Anything you put on the `spec` folder in the format `*.spec.ts` will be run by the test engine.
-
-Here we are evaluating your capacity to understand what should be tested and how. Are you going to create abstractions and mock dependencies? Are you going to test the database layer? Are you going to test the API layer? That's all up to you.
-
-## Further Instructions
-- We expect you to handle errors and edge cases. Understanding what these are and how to handle them is part of the challenge;
-- We provided you with a setup to run the API and a Postgres database together using Docker, as well as some sample code to test the database connection. You can change this setup to use any other database you'd like;
