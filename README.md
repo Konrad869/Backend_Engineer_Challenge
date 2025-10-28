@@ -41,18 +41,103 @@ A high-performance blockchain indexer that tracks address balances using the UTX
 - Docker and Docker Compose
 - (Optional) Bun (if not using Docker)
 
-### Running with Docker (Recommended)
+### 🔄 Environment Cleanup (Important!)
+
+Before the first run or if you encounter any issues, it's recommended to clean up the Docker environment:
 
 ```bash
-# Start the application
-$ docker-compose up -d --build
+# Stop and remove all containers and volumes
+docker-compose down -v
 
-# Run tests
-$ docker-compose exec api bun test
+# Remove all unused containers, networks, and images
+docker system prune -a -f
 
-# View logs
-$ docker-compose logs -f api
+# Remove all unused volumes
+docker volume prune -f
+
+# Remove all unused networks
+docker network prune -f
 ```
+
+### 🛠️ Installation & Running with Docker (Recommended)
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd backend-engineer-test-main
+   ```
+
+2. **Start the application**:
+   ```bash
+   # Build and start containers in detached mode
+   docker-compose up -d --build
+   ```
+
+3. **Verify the services are running**:
+   ```bash
+   # Check container status
+   docker-compose ps
+   
+   # View logs
+   docker-compose logs -f
+   ```
+
+4. **Verify database initialization**:
+   ```bash
+   # Check if tables were created
+   docker-compose exec db psql -U myuser -d mydatabase -c "\dt"
+   ```
+
+### 🧪 Testing
+
+1. **Run all tests**:
+   ```bash
+   docker-compose exec api bun test
+   ```
+
+2. **Run specific test file**:
+   ```bash
+   docker-compose exec api bun test spec/unit/blockchain.service.spec.ts
+   ```
+
+3. **Run with coverage**:
+   ```bash
+   docker-compose exec api bun test --coverage
+   ```
+
+### 🧩 Example API Requests
+
+1. **Check API status**:
+   ```bash
+   curl http://localhost:3000
+   # Should return: {"status":"ok","service":"blockchain-indexer"}
+   ```
+
+2. **Add a genesis block**:
+   ```bash
+   curl -X POST http://localhost:3000/blocks \
+     -H "Content-Type: application/json" \
+     -d '{
+       "id": "genesis-block",
+       "height": 1,
+       "transactions": [{
+         "id": "tx1",
+         "inputs": [],
+         "outputs": [{"address": "addr1", "value": 100}]
+       }]
+     }'
+   ```
+
+3. **Check balance**:
+   ```bash
+   curl http://localhost:3000/balance/addr1
+   # Should return: {"balance": 100}
+   ```
+
+4. **Rollback to a specific height**:
+   ```bash
+   curl -X POST "http://localhost:3000/rollback?height=0"
+   ```
 
 ### Running Locally
 
@@ -119,17 +204,82 @@ Rollback the blockchain to a specific height.
 
 ## 🧪 Testing
 
-The project includes comprehensive tests covering:
-- Block validation
-- Transaction processing
-- Balance calculation
-- Rollback functionality
-- Edge cases and error handling
+The project includes a comprehensive test suite written with Bun's built-in test runner. The tests are organized in the `spec/` directory and cover various aspects of the application.
 
-Run tests with:
+### Test Structure
+
+```
+spec/
+├── unit/                  # Unit tests
+│   ├── blockchain.service.spec.ts  # Tests for blockchain service
+│   ├── block.repository.spec.ts    # Tests for block repository
+│   ├── logger.spec.ts              # Tests for logging functionality
+│   └── ...
+└── index.spec.ts          # Integration/API tests
+```
+
+### Unit Tests
+
+#### Blockchain Service Tests
+Tests for the core blockchain logic including:
+- Block validation and processing
+- Transaction verification
+- UTXO management
+- Balance calculations
+- Rollback functionality
+
+Example test case:
+```typescript
+test('should process valid block with transactions', async () => {
+  const block = createMockBlock(1, [mockTransaction]);
+  await service.processBlock(block);
+  const balance = await service.getBalance('addr1');
+  expect(balance).toBe(100);
+});
+```
+
+#### Repository Tests
+- Database operations
+- Data consistency
+- Error handling
+
+#### Logger Tests
+- Log level filtering
+- Context propagation
+- Error handling
+
+### Integration Tests
+
+Full API endpoint tests that verify:
+- HTTP status codes
+- Response formats
+- Data validation
+- Error handling
+
+### Running Tests
+
+Run all tests:
 ```bash
 bun test
 ```
+
+Run specific test file:
+```bash
+bun test spec/unit/blockchain.service.spec.ts
+```
+
+Run with coverage:
+```bash
+bun test --coverage
+```
+
+### Test Coverage
+
+The test suite aims to maintain high test coverage, particularly for:
+- Core blockchain logic (100%)
+- API endpoints (100%)
+- Database operations (100%)
+- Error handling paths (100%)
 
 ## 📊 Database Schema
 
